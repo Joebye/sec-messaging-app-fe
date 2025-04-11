@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { TextField, Button, Box, Typography } from '@mui/material';
-import { pollMessages, sendMessage } from './api';
-import { decryptMessage, encryptMessage, generateAESKey } from '../crypto/aes';
+import { pollMessages, sendMessage } from '../services/api';
+import { decryptMessage, encryptMessage, generateAESKey, base64Encode } from '../crypto/aes';
 
 interface Props {
   token: string;
@@ -16,11 +16,15 @@ const ChatBox: React.FC<Props> = ({ token }) => {
     generateAESKey().then(setKeyIv);
     const poll = async () => {
       const data = await pollMessages(token);
+      console.log(data);
+      
       if (data?.encryptedMessage && keyIv) {
         const plain = await decryptMessage(data.encryptedMessage, keyIv.key, keyIv.iv);
         setChat(prev => [...prev, plain]);
+        console.log('chat: ' + chat);
+        
       }
-      poll(); // recurse
+      poll(); 
     };
     poll();
   }, [token]);
@@ -28,7 +32,8 @@ const ChatBox: React.FC<Props> = ({ token }) => {
   const handleSend = async () => {
     if (!input || !keyIv) return;
     const encrypted = await encryptMessage(input, keyIv.key, keyIv.iv);
-    await sendMessage(token, encrypted, Buffer.from(keyIv.iv).toString('base64'));
+    const ivBase64 = base64Encode(keyIv.iv.buffer as ArrayBuffer); 
+    await sendMessage(token, encrypted, ivBase64);
     setInput('');
   };
 

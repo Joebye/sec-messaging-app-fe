@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography } from '@mui/material';
-import { loginUser, registerUser } from './components/api';
+import { loginUser, registerUser } from './services/api';
 import AuthForm from './components/AuthForm';
 import ChatBox from './components/ChatBox';
 
@@ -13,7 +13,6 @@ const App: React.FC = () => {
       const response = isLogin
         ? await loginUser(username, password)
         : await registerUser(username, password);
-
       if (response.token) setToken(response.token);
     } catch (err) {
       alert('Authentication failed');

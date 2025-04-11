@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 const baseSecureApiURL = process.env.REACT_APP_BASE_API_URL;
-
 const api = axios.create({ baseURL: baseSecureApiURL});
-
 
 export const registerUser = async (username: string, password: string) => {
   const res = await api.post('/auth/signup', { username, password });
@@ -23,7 +21,7 @@ export const sendMessage = async (token: string, encryptedMessage: string, aesKe
 
 export const pollMessages = async (token: string) => {
   const res = await api.get('/messages/poll', {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
   return res.data;
 };
