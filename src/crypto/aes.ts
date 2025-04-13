@@ -16,13 +16,18 @@ export function base64Encode(arrayBuffer: ArrayBuffer): string {
     return bytes.buffer;
   }
   
-  export async function generateAESKey(): Promise<{ key: CryptoKey, iv: Uint8Array }> {
-    const key = await crypto.subtle.generateKey(
-      { name: 'AES-CBC', length: 256 },
-      true,
+  export async function generateAESKey(): Promise<{ key: CryptoKey; iv: Uint8Array }> {
+    const rawKey = new Uint8Array(32).fill(1); 
+    const key = await crypto.subtle.importKey(
+      'raw',
+      rawKey,
+      { name: 'AES-CBC' },
+      false,
       ['encrypt', 'decrypt']
     );
-    const iv = crypto.getRandomValues(new Uint8Array(16));
+  
+    const iv = new Uint8Array(16).fill(2); 
+  
     return { key, iv };
   }
   

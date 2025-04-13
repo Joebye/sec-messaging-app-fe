@@ -11,22 +11,35 @@ const ChatBox: React.FC<Props> = ({ token }) => {
   const [input, setInput] = useState('');
   const [chat, setChat] = useState<string[]>([]);
   const [keyIv, setKeyIv] = useState<{ key: CryptoKey; iv: Uint8Array } | null>(null);
-
+ 
   useEffect(() => {
-    generateAESKey().then(setKeyIv);
-    const poll = async () => {
-      const data = await pollMessages(token);
-      console.log(data);
-      
-      if (data?.encryptedMessage && keyIv) {
-        const plain = await decryptMessage(data.encryptedMessage, keyIv.key, keyIv.iv);
-        setChat(prev => [...prev, plain]);
-        console.log('chat: ' + chat);
-        
-      }
+    let aesKeyIv: { key: CryptoKey; iv: Uint8Array };
+  
+    const init = async () => {
+      aesKeyIv = await generateAESKey();
+      setKeyIv(aesKeyIv);
+  
+      const poll = async () => {
+        try {
+          const data = await pollMessages(token);
+          if (data?.encryptedMessage) {
+            try {
+                const plain = await decryptMessage(data.encryptedMessage, aesKeyIv.key, aesKeyIv.iv);
+                setChat(prev => [...prev, plain]);
+                 } catch (err) {
+                console.warn(err);
+              }
+          }
+        } catch (e) {
+          console.error('Polling failed:', e);
+        }
+  
+        poll();
+      };
       poll(); 
     };
-    poll();
+  
+    init();
   }, [token]);
 
   const handleSend = async () => {
